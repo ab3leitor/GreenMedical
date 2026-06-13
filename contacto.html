@@ -5,7 +5,19 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#073d2b">
 <meta name="description" content="Contacta al área comercial de Green Medical en La Reina, Santiago.">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="es_CL">
+<meta property="og:site_name" content="Green Medical">
+<meta property="og:title" content="Contacto | Green Medical">
+<meta property="og:description" content="Contacta al área comercial de Green Medical en La Reina, Santiago.">
+<meta property="og:url" content="https://greenmedical.cl/contacto.html">
+<meta property="og:image" content="https://greenmedical.cl/assets/og-green-medical.jpg">
+<meta name="twitter:card" content="summary_large_image">
 <title>Contacto | Green Medical</title>
+<link rel="canonical" href="https://greenmedical.cl/contacto.html">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="assets/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
@@ -53,7 +65,7 @@
 <h2 class="title">Estamos en<br>
 <span>La Reina.</span>
 </h2>
-<p style="color:var(--muted);line-height:1.75">Selecciona el canal que prefieras o prepara un correo mediante el formulario.</p>
+<p style="color:var(--muted);line-height:1.75">Selecciona el canal que prefieras o envíanos un mensaje mediante el formulario.</p>
 <div class="contact-cards">
 <a class="contact-card" href="https://maps.app.goo.gl/uhWnBv5ek7kK2BJJ7" target="_blank" rel="noreferrer">
 <i class="bi bi-geo-alt">
@@ -81,24 +93,25 @@
 </div>
 </div>
 </div>
-<form class="contact-form reveal" data-contact novalidate>
+<form class="contact-form reveal" data-contact action="contacto.php" method="post" novalidate>
 <p class="eyebrow">Envíanos un mensaje</p>
+<input class="contact-trap" name="website" type="text" tabindex="-1" autocomplete="off" aria-hidden="true">
 <div class="form-grid">
 <label>
 <span>Nombre</span>
-<input name="nombre" type="text" autocomplete="name" placeholder="Tu nombre" minlength="2" required>
+<input name="nombre" type="text" autocomplete="name" placeholder="Tu nombre" minlength="2" maxlength="100" required>
 <small>
 </small>
 </label>
 <label>
 <span>Correo</span>
-<input name="email" type="email" autocomplete="email" placeholder="tu@email.cl" required>
+<input name="email" type="email" autocomplete="email" placeholder="tu@email.cl" maxlength="160" required>
 <small>
 </small>
 </label>
 <label>
 <span>Teléfono</span>
-<input name="telefono" type="tel" autocomplete="tel" placeholder="+56 9 1234 5678">
+<input name="telefono" type="tel" autocomplete="tel" placeholder="+56 9 1234 5678" maxlength="40">
 <small>
 </small>
 </label>
@@ -122,7 +135,7 @@
 </small>
 </label>
 </div>
-<button class="button button-dark magnetic" type="submit">Preparar correo <i class="bi bi-send">
+<button class="button button-dark magnetic" type="submit">Enviar mensaje <i class="bi bi-send">
 </i>
 </button>
 </form>

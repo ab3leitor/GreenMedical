@@ -124,15 +124,9 @@ Para agregar o modificar productos, edita los objetos de la categoría correspon
 
 ## Formulario de contacto
 
-El formulario valida en el navegador los campos obligatorios, el formato del correo y la longitud del mensaje. Al enviarlo, prepara un mensaje dirigido a `comercial@greenmedical.cl` mediante un enlace `mailto:`.
+El formulario valida en el navegador y envía los datos mediante `fetch` al endpoint PHP `contacto.php`. El backend repite la validación, incorpora un campo honeypot, limita envíos consecutivos y entrega el mensaje a `comercial@greenmedical.cl` mediante la función `mail()` de PHP.
 
-Esto significa que:
-
-- No se almacenan datos en una base de datos.
-- No existe envío de correo desde el servidor.
-- El visitante necesita una aplicación de correo configurada en su dispositivo.
-
-Para recibir mensajes directamente desde el sitio será necesario integrar posteriormente un backend o un servicio de formularios.
+En producción, el hosting debe tener el envío de correo PHP configurado. El destinatario puede cambiarse mediante la variable de entorno `GREENMEDICAL_CONTACT_TO`. Si el proveedor no ofrece correo saliente, configura SMTP en el servidor o sustituye el endpoint por Formspree o EmailJS.
 
 ## Personalización
 
@@ -153,7 +147,11 @@ La identidad visual se administra principalmente mediante variables CSS declarad
 
 Los recursos visuales están en `assets/`. Conserva los nombres actuales al reemplazarlos o actualiza las rutas correspondientes en los archivos HTML.
 
-El video institucional es el archivo `assets/video-institucional.mp4`. Debido a su tamaño, conviene optimizarlo antes de publicar nuevas versiones.
+El video institucional es el archivo `assets/video-institucional.mp4`. Se carga de forma diferida cuando el visitante se acerca a la sección, evitando descargarlo durante la carga inicial. Si se reemplaza, se recomienda exportarlo en H.264, resolución máxima de 1080p, con el audio y bitrate ajustados al uso web.
+
+Las fotografías principales están limitadas a 1600 px y guardadas como WebP. Al incorporar recursos nuevos, conserva dimensiones similares y añade `width`, `height`, `loading="lazy"` y `decoding="async"` cuando no sean imágenes críticas de la primera pantalla.
+
+La vista previa para redes usa `assets/og-green-medical.jpg` (1200 x 630) y los favicons están en `assets/favicon.svg`, `assets/favicon-32.png` y `assets/apple-touch-icon.png`.
 
 ## Dependencias externas
 
@@ -175,6 +173,16 @@ Al ser un sitio estático, puede publicarse en cualquier hosting que sirva archi
 3. Confirma que el video y las imágenes estén optimizados.
 4. Revisa que el dominio use HTTPS.
 5. Configura caché y compresión en el servidor cuando estén disponibles.
+
+### Prueba en un teléfono real
+
+La simulación responsive ayuda a detectar problemas de layout, pero no sustituye una prueba física. Para revisar el sitio desde un teléfono conectado a la misma red que el equipo:
+
+1. Inicia Apache en XAMPP y consulta la dirección IPv4 del equipo con `ipconfig`.
+2. Abre `http://DIRECCION-IP/GreenMedical/` en Safari iOS y Chrome Android.
+3. Comprueba el menú, el modal de contacto, teclado y campos del formulario, enlaces de teléfono/WhatsApp, reproducción y sonido del video, orientación vertical/horizontal y desplazamiento lateral.
+4. Repite una carga con datos móviles o una red lenta para confirmar que la portada aparece antes de que se descargue el video.
+5. Envía un mensaje de prueba únicamente después de configurar el correo saliente del hosting y confirma tanto la recepción como la carpeta de spam.
 
 ## Información legal
 

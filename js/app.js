@@ -69,21 +69,36 @@ function setupInstitutionalVideo(reduced) {
   if (!video || !control) return;
   const icon = control.querySelector('i');
   const label = control.querySelector('span');
+  let loaded = false;
+  const loadVideo = () => {
+    if (loaded || !video.dataset.src) return;
+    loaded = true;
+    video.src = video.dataset.src;
+    video.load();
+    if (!reduced) video.play().catch(() => {});
+  };
   const updateControl = () => {
     icon.className = `bi bi-volume-${video.muted ? 'mute-fill' : 'up-fill'}`;
     label.textContent = video.muted ? 'Activar sonido' : 'Silenciar';
     control.setAttribute('aria-label', label.textContent + ' del video');
   };
   control.addEventListener('click', () => {
+    loadVideo();
     video.muted = !video.muted;
     if (video.paused) video.play().catch(() => {});
     updateControl();
   });
   video.muted = true;
-  video.play().catch(() => {});
+  const loader = new IntersectionObserver(entries => {
+    if (entries.some(entry => entry.isIntersecting)) {
+      loadVideo();
+      loader.disconnect();
+    }
+  }, { rootMargin: '500px 0px' });
+  loader.observe(video);
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) video.pause();
-    else video.play().catch(() => {});
+    else if (loaded && !reduced) video.play().catch(() => {});
   });
   updateControl();
 }
@@ -355,7 +370,7 @@ function installContactExperience() {
       <div class="modal-backdrop" data-close-modal></div><div class="modal-orbit" aria-hidden="true"><i></i></div>
       <div class="modal-card"><button class="modal-close" type="button" data-close-modal aria-label="Cerrar contacto"><i class="bi bi-x-lg"></i></button>
         <div class="modal-info"><div class="modal-logo" aria-label="Green Medical Laboratorios"></div><p class="eyebrow" style="color:var(--lime)">Hablemos</p><h2 id="modalTitle">¿Cómo podemos ayudarte?</h2><p>Productos, distribución y oportunidades comerciales. Nuestro equipo está disponible de lunes a viernes.</p><div class="modal-quick"><a href="tel:+56222387651"><i class="bi bi-telephone"></i>+56 2 2238 7651</a><a href="mailto:comercial@greenmedical.cl"><i class="bi bi-envelope"></i>comercial@greenmedical.cl</a><a href="https://maps.app.goo.gl/uhWnBv5ek7kK2BJJ7" target="_blank" rel="noreferrer"><i class="bi bi-geo-alt"></i>La Reina, Santiago</a><a href="https://wa.me/56222387651" target="_blank" rel="noreferrer"><i class="bi bi-whatsapp"></i>WhatsApp</a></div></div>
-        <form class="modal-form" data-contact novalidate><p class="eyebrow">Escríbenos</p><div class="form-grid"><label><span>Nombre</span><input name="nombre" type="text" autocomplete="name" placeholder="Tu nombre" minlength="2" required><small></small></label><label><span>Correo</span><input name="email" type="email" autocomplete="email" placeholder="tu@email.cl" required><small></small></label><label><span>Teléfono</span><input name="telefono" type="tel" autocomplete="tel" placeholder="+56 9 1234 5678"><small></small></label><label><span>Consulta</span><select name="tipo" required><option value="">Selecciona</option><option>Consulta de productos</option><option>Venta y distribución</option><option>Área comercial</option><option>Otra consulta</option></select><small></small></label><label class="full"><span>Mensaje</span><textarea name="mensaje" rows="4" minlength="10" maxlength="800" placeholder="Cuéntanos cómo podemos ayudarte..." required></textarea><small></small></label></div><button class="button button-dark" type="submit">Preparar correo <i class="bi bi-send"></i></button></form>
+        <form class="modal-form" data-contact action="contacto.php" method="post" novalidate><p class="eyebrow">Escríbenos</p><input class="contact-trap" name="website" type="text" tabindex="-1" autocomplete="off" aria-hidden="true"><div class="form-grid"><label><span>Nombre</span><input name="nombre" type="text" autocomplete="name" placeholder="Tu nombre" minlength="2" maxlength="100" required><small></small></label><label><span>Correo</span><input name="email" type="email" autocomplete="email" placeholder="tu@email.cl" maxlength="160" required><small></small></label><label><span>Teléfono</span><input name="telefono" type="tel" autocomplete="tel" placeholder="+56 9 1234 5678" maxlength="40"><small></small></label><label><span>Consulta</span><select name="tipo" required><option value="">Selecciona</option><option>Consulta de productos</option><option>Venta y distribución</option><option>Área comercial</option><option>Otra consulta</option></select><small></small></label><label class="full"><span>Mensaje</span><textarea name="mensaje" rows="4" minlength="10" maxlength="800" placeholder="Cuéntanos cómo podemos ayudarte..." required></textarea><small></small></label></div><button class="button button-dark" type="submit">Enviar mensaje <i class="bi bi-send"></i></button></form>
       </div>
     </div><div class="toast" role="status" aria-live="polite"></div>`);
 
@@ -400,7 +415,7 @@ function setupContactForm(form) {
     return !message;
   };
   form.querySelectorAll('input,textarea,select').forEach(field => field.addEventListener('blur', () => validate(field)));
-  form.addEventListener('submit', event => {
+  form.addEventListener('submit', async event => {
     event.preventDefault();
     const fields = [...form.querySelectorAll('input,textarea,select')];
     if (!fields.map(validate).every(Boolean)) {
@@ -408,10 +423,26 @@ function setupContactForm(form) {
       fields.find(field => field.getAttribute('aria-invalid') === 'true')?.focus();
       return;
     }
-    const data = new FormData(form);
-    const subject = encodeURIComponent(`${data.get('tipo')} - ${data.get('nombre')}`);
-    const body = encodeURIComponent(`Hola Green Medical,\n\nNombre: ${data.get('nombre')}\nCorreo: ${data.get('email')}\nTeléfono: ${data.get('telefono') || 'No informado'}\nTipo de consulta: ${data.get('tipo')}\n\n${data.get('mensaje')}`);
-    show('Preparando tu correo...');
-    setTimeout(() => location.href = `mailto:comercial@greenmedical.cl?subject=${subject}&body=${body}`, 450);
+    const button = form.querySelector('button[type="submit"]');
+    const originalLabel = button.innerHTML;
+    button.disabled = true;
+    button.innerHTML = 'Enviando... <i class="bi bi-arrow-repeat"></i>';
+    try {
+      const response = await fetch(form.action || 'contacto.php', {
+        method: 'POST',
+        body: new FormData(form),
+        headers: { Accept: 'application/json' }
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok || !result.ok) throw new Error(result.message || 'No pudimos enviar el mensaje.');
+      form.reset();
+      form.querySelectorAll('[aria-invalid]').forEach(field => field.setAttribute('aria-invalid', 'false'));
+      show(result.message || 'Mensaje enviado correctamente.');
+    } catch (error) {
+      show(error.message || 'No pudimos enviar el mensaje. Intenta nuevamente.');
+    } finally {
+      button.disabled = false;
+      button.innerHTML = originalLabel;
+    }
   });
 }
